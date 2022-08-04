@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, JSONResponse
 
 from encoder import get_all_encoder_names, EncodingBody
 import encoder
@@ -19,4 +19,7 @@ async def get_encoder_list():
 
 @app.post("/encoders/encode")
 async def encode(encoding_body: EncodingBody):
-    return encoder.encode(encoding_body)
+    try:
+        return encoder.encode(encoding_body)
+    except KeyError:
+        return JSONResponse(status_code=402, content="Payment required to use (implement) this encoder")

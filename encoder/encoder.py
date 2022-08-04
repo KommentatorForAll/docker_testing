@@ -21,9 +21,8 @@ def get_all_encoder_names() -> Iterable[str]:
     return list(_named_encodes.keys())
 
 
-@cache
 def get_encoder_from_name(name: str) -> Encoder:
-    return _named_encodes.get(name)
+    return _named_encodes[name]
 
 
 def encode(body: EncodingBody):
