@@ -1,4 +1,3 @@
-from functools import cache
 from typing import List, Dict, Iterable
 
 from pydantic import BaseModel
@@ -31,6 +30,7 @@ def encode(body: EncodingBody):
         message = get_encoder_from_name(body.type).decode(message)
 
     encoded = {enc.name: enc.encode(message) for enc in _encoders}
+    print(f"encoded {body.message} from type {body.type}")
     return {"encoded": encoded}
 
 
