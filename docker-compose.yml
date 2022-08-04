@@ -29,8 +29,14 @@ services:
       - JOOMLA_DB_NAME="joomla"
       - JOOMLA_DB_PASSWORD=root
     labels:
-      - traefik.http.routers.joomla.rule=Path("/joomla")
-      - traefik.http.services.joomla.loadbalancer.port=1335
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.joomla.entrypoints=http"
+      - "traefik.http.routers.joomla.rule=Host(`localhost`) && PathPrefix(`/joomla`)"
+      - "traefik.http.routers.joomla.middlewares=joomla-mw@docker"
+      - "traefik.http.services.joomla.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.joomla-mw.replacepathregex.regex=^/joomla/(.*)"
+      - "traefik.http.middlewares.joomla-mw.replacepathregex.replacement=/$$1"
 
   wordpress:
     image: wordpress
@@ -49,8 +55,14 @@ services:
     depends_on:
       - mariadb
     labels:
-      - traefik.http.routers.wordpress.rule=Path("/wordpress")
-      - traefik.http.services.wordpress.loadbalancer.port=1336
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.wordpress.entrypoints=http"
+      - "traefik.http.routers.wordpress.rule=Host(`localhost`) && PathPrefix(`/wordpress`)"
+      - "traefik.http.routers.wordpress.middlewares=wordpress-mw@docker"
+      - "traefik.http.services.wordpress.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.wordpress-mw.replacepathregex.regex=^/wordpress/(.*)"
+      - "traefik.http.middlewares.wordpress-mw.replacepathregex.replacement=/$$1"
 
   reverse-proxy:
     image: traefik:v2.8

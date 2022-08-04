@@ -1,0 +1,101 @@
+version: '3.8'
+services:
+  queue:
+    image: rabbitmq:management
+    networks:
+      - web
+    ports:
+      - 50000:15672
+    restart: unless-stopped
+    volumes:
+      - queue_data:/var/lib/rabbitmq
+
+  traefik:
+    image: traefik:2.7
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "80:80"
+    networks:
+      - web
+    command:
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--log.level=DEBUG"
+      - "--providers.docker"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.network=web"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.auth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/,test2:$$apr1$$d9hr9HBB$$4HxwgUir3HP4EsggP/QNo0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  
+  academic_course_db:
+    image: redis/redis-stack:latest
+    restart: always
+    networks:
+      - academic_course_net
+    ports:
+      - '50040:8001'
+      - 6379:6379
+    volumes:
+      - academic-course-redis-data:/data
+  
+  academic_course_api:
+    image: git.fh-muenster.de:4567/swa1/msa22/academic_course_management-backend
+    restart: always
+    environment:
+      REDIS_OM_URL: "redis://academic_course_db:6379"
+      ACADEMIC_COURSE_ZOOM_API_KEY: "${ACADEMIC_COURSE_ZOOM_API_KEY:-default_api_key}"
+      ACADEMIC_COURSE_ZOOM_API_SECRET: "${ACADEMIC_COURSE_ZOOM_API_SECRET:-default_secret_key}"
+      RABBITMQ_USR: "${RABBITMQ_USR:-guest}"
+      RABBITMQ_PWD: "${RABBITMQ_PWD:-guest}"
+      RABBITMQ_URL: "queue"
+      RABBITMQ_PORT: 5672
+      EXCHANGE_NAME: "FhExchange"
+      MS_NAME: "course"
+      ACADEMIC_COURSE_ROOT_PATH: "/api/course"
+    networks:
+      - academic_course_net
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.course-api.entrypoints=http"
+      - "traefik.http.routers.course-api.rule=Host(`localhost`) && PathPrefix(`/api/course`)"
+      - "traefik.http.routers.course-api.middlewares=course-api-mw@docker, auth"
+      - "traefik.http.services.course-api.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.course-api-mw.replacepathregex.regex=^/api/course/(.*)"
+      - "traefik.http.middlewares.course-api-mw.replacepathregex.replacement=/$$1"
+    depends_on:
+      - academic_course_db
+  academic_course_frontend:
+    image: git.fh-muenster.de:4567/swa1/msa22/academic_course_management-frontend
+    restart: always
+    networks:
+      - academic_course_net
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.course-frontend.entrypoints=http"
+      - "traefik.http.routers.course-frontend.rule=Host(`localhost`) && PathPrefix(`/course/`)"
+      - "traefik.http.routers.course-frontend.middlewares=course-frontend-mw@docker, auth"
+      - "traefik.http.services.course-frontend.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.course-frontend-mw.replacepathregex.regex=^/course/(.*)"
+      - "traefik.http.middlewares.course-frontend-mw.replacepathregex.replacement=/$$1"
+    depends_on:
+      - academic_course_db
+
+volumes:
+  academic-course-redis-data:
+    driver: local
+  academic-course-rabbitmq-data:
+    driver: local
+  queue_data:
+
+networks:
+  academic_course_net:
+  web:
+    external: true
