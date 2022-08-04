@@ -1,0 +1,72 @@
+version: "3.9"
+
+services:
+  mariadb:
+    image: mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    networks:
+      - mariadb_joomla_wordpress
+
+  joomla:
+    image: joomla
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+    ports:
+      - "1335:80"
+    links:
+      - mariadb:mysql
+    networks:
+      - mariadb_joomla_wordpress
+      - default
+    environment:
+      - JOOMLA_DB_HOST=mariadb:3306
+      - JOOMLA_DB_USER=root
+      - JOOMLA_DB_NAME="joomla"
+      - JOOMLA_DB_PASSWORD=root
+    labels:
+      - traefik.http.routers.joomla.rule=Path("/joomla")
+      - traefik.http.services.joomla.loadbalancer.port=1335
+
+  wordpress:
+    image: wordpress
+    networks:
+      - mariadb_joomla_wordpress
+      - default
+    ports:
+      - "1336:80"
+    environment:
+      - WORDPRESS_DB_HOST=mariadb:3306
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress
+      - WORDPRESS_DB_NAME=wordpress
+    volumes:
+      - wordpress:/var/www/html
+    depends_on:
+      - mariadb
+    labels:
+      - traefik.http.routers.wordpress.rule=Path("/wordpress")
+      - traefik.http.services.wordpress.loadbalancer.port=1336
+
+  reverse-proxy:
+    image: traefik:v2.8
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - default
+      - mariadb_joomla_wordpress
+
+volumes:
+  wordpress:
+
+networks:
+  mariadb_joomla_wordpress: {}
+

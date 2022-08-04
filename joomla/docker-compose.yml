@@ -1,0 +1,13 @@
+services:
+  joomla:
+    image: joomla
+    ports:
+      - "8080:1335"
+    networks:
+      - mariadb_joomla_wordpress
+    environment:
+      - JOOMLA_DB_USER=joomla
+      - JOOMLA_DB_PASSWORD=joomla
+    restart: unless-stopped
+    links:
+      - db:mariadb
