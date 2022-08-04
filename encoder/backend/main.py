@@ -22,4 +22,4 @@ async def encode(encoding_body: EncodingBody):
     try:
         return encoder.encode(encoding_body)
     except KeyError:
-        return JSONResponse(status_code=402, content="Payment required to use (implement) this encoder")
+        return JSONResponse(status_code=402, content={"message": "Payment required to use (implement) this encoder"})
