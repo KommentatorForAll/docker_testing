@@ -16,7 +16,7 @@ public class RestService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final String baseUrl = "http://localhost:8000";
+    private final String baseUrl = "http://py-backend:8000";
 
     private final RestTemplate restTemplate;
 

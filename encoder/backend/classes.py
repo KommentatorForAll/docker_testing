@@ -35,10 +35,10 @@ class HexEncoder(Encoder):
         super().__init__("hex")
 
     def encode(self, plain_text: str) -> str:
-        return bytes(plain_text, "ansi").hex(" ")
+        return bytes(plain_text, "utf8").hex(" ")
 
     def decode(self, code: str) -> str:
-        return bytes.fromhex(code).decode("ansi")
+        return bytes.fromhex(code).decode("utf8")
 
 
 @notice_me
@@ -47,8 +47,8 @@ class Base64Encoder(Encoder):
         super().__init__("base64")
 
     def encode(self, plain_text: str) -> str:
-        return base64.b64encode(bytes(plain_text, "ansi")).decode("ansi")
+        return base64.b64encode(bytes(plain_text, "utf8")).decode("utf8")
 
     def decode(self, code: str) -> str:
-        return base64.b64decode(bytes(code, "ansi")).decode("ansi")
+        return base64.b64decode(bytes(code, "utf8")).decode("utf8")
     

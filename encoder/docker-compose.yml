@@ -9,11 +9,19 @@ services:
     networks:
       - backend
       - database
-      - default
+
+  spring-frontend:
+    image: pyencoder-frontend:latest
+    ports:
+      - "80:8080"
+    networks:
+      - backend
       - web
+    depends_on:
+      - py-backend
 
 networks:
-  backend:
-  database:
   web:
     external: true
+  backend:
+  database:
