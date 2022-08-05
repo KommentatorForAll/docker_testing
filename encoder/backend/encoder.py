@@ -31,6 +31,6 @@ def encode(body: EncodingBody):
 
     encoded = {enc.name: enc.encode(message) for enc in _encoders}
     print(f"encoded {body.message} from type {body.type}")
-    return {"encoded": encoded}
+    return {"messages": encoded}
 
 

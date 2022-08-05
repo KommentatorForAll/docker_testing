@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Encoder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+</head>
+<body>
+<h2>Encoder</h2>
+<div class="container-float">
+    <form id="convert" method="post" th:action="@{/index}" th:object="${message}">
+        <select th:field="*{type}">
+            <th:block th:each="msg:${messages}">
+                <option th:text="${msg.type}" th:value="${msg.type}"></option>
+            </th:block>
+        </select>
+        <br>
+        <textarea th:field="*{message}"></textarea>
+        <br>
+        <button class="btn btn-primary btn-block convert" type="submit">Convert!</button>
+    </form>
+    <div th:each="msg:${messages}" th:class="|box ${msg.type}|" th:style="|width: 350px; float:left; height:350px; background:${colors.get(msg.type)}; margin:10px|">
+        <h3 th:text="${msg.type}"></h3>
+        <br>
+        <textarea style="margin:10px" disabled th:text="${msg.message}" cols="32" rows="10"></textarea>
+    </div>
+</div>
+</body>
+</html>
