@@ -1,6 +1,7 @@
 package com.commentator.encoder.web;
 
 import com.commentator.encoder.backendAdapter.RestService;
+import com.commentator.encoder.domain.EncoderStatistics;
 import com.commentator.encoder.domain.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -50,5 +51,13 @@ public class PageController {
         model.addAttribute("messages", msgs);
         model.addAttribute("colors", colors);
         return "index";
+    }
+
+    @GetMapping({"statistics", "stats"})
+    public String statistics(Model model) {
+        List<EncoderStatistics> stats = restService.getStatistics();
+        model.addAttribute("statistics", stats);
+        model.addAttribute("colors", colors);
+        return "statistics";
     }
 }

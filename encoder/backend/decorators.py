@@ -1,4 +1,5 @@
 import inspect
+from functools import cache
 from typing import List, TypeVar, Tuple, Type, Callable
 
 C = TypeVar("C", type, Tuple[type])
@@ -25,6 +26,7 @@ def notice_me(cls: C) -> C:
     return NoticeMe
 
 
+@cache
 def get_instances(cls: Type[C]) -> List[C]:
     if not inspect.isclass(cls):
         raise TypeError("cls must be of type Class")

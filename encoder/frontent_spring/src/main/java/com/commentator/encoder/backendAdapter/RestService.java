@@ -1,5 +1,6 @@
 package com.commentator.encoder.backendAdapter;
 
+import com.commentator.encoder.domain.EncoderStatistics;
 import com.commentator.encoder.domain.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -41,5 +42,10 @@ public class RestService {
         String url = baseUrl + String.format("/encoders/encode_url/%s/%s", URLEncoder.encode(message.type, StandardCharsets.UTF_8), URLEncoder.encode(message.message, StandardCharsets.UTF_8));
         Map<String, String> body = (Map<String, String>) restTemplate.postForObject(url, null, Map.class).get("messages");
         return body.entrySet().stream().map(e -> new Message(e.getKey(), e.getValue())).toList();
+    }
+
+    public List<EncoderStatistics> getStatistics() {
+        String url = baseUrl + "/statistics";
+        return restTemplate.getForObject(url, List.class);
     }
 }

@@ -1,5 +1,6 @@
 import abc
 import base64
+import urllib.parse
 
 from decorators import notice_me
 
@@ -38,7 +39,7 @@ class HexEncoder(Encoder):
         return bytes(plain_text, "utf8").hex(" ")
 
     def decode(self, code: str) -> str:
-        return bytes.fromhex(code).decode("utf8")
+        return bytes.fromhex(code.replace(" ", "")).decode("utf8")
 
 
 @notice_me
@@ -51,4 +52,27 @@ class Base64Encoder(Encoder):
 
     def decode(self, code: str) -> str:
         return base64.b64decode(bytes(code, "utf8")).decode("utf8")
-    
+
+
+@notice_me
+class HTMLEscapedEncoder(Encoder):
+    def __init__(self):
+        super().__init__("html escaped")
+
+    def encode(self, plain_text: str) -> str:
+        return urllib.parse.quote(plain_text)
+
+    def decode(self, code: str) -> str:
+        return urllib.parse.unquote(code)
+
+
+@notice_me
+class BinaryEncoder(Encoder):
+    def __init__(self):
+        super().__init__("binary")
+
+    def encode(self, plain_text: str) -> str:
+        return ' '.join(format(ord(x), 'b') for x in plain_text)
+
+    def decode(self, code: str) -> str:
+        return ''.join([chr(int(i, 2)) for i in code.split(" ")])

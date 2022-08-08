@@ -2,6 +2,15 @@ version: "3.1"
 
 services:
 
+  db:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    networks:
+      - database
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+
   py-backend:
     image: pyencoder-backend:latest
     ports:
@@ -9,16 +18,47 @@ services:
     networks:
       - backend
       - database
+    depends_on:
+      - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.py-backend.entrypoints=http"
+      - "traefik.http.routers.py-backend.rule=Host(`localhost`) && PathPrefix(`/encoders/`)"
+      - "traefik.http.routers.py-backend.rule=Host(`localhost`) && Path(`/stats`)"
+      - "traefik.http.routers.py-backend.middlewares=py-backend-mw@docker"
+      - "traefik.http.services.py-backend.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.py-backend-mw.replacepathregex.regex=^/(.*)"
+      - "traefik.http.middlewares.py-backend-mw.replacepathregex.replacement=/$$1"
 
   spring-frontend:
     image: pyencoder-frontend:latest
     ports:
-      - "80:8080"
+      - "8008:8080"
+    networks:
+      - backend
+    depends_on:
+      - py-backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.spring-frontend.entrypoints=http"
+      - "traefik.http.routers.spring-frontend.rule=Host(`localhost`) && Path(`/index`)"
+      - "traefik.http.routers.spring-frontend.rule=Host(`localhost`) && Path(`/statistics`)"
+      - "traefik.http.routers.spring-frontend.middlewares=spring-frontend-mw@docker"
+      - "traefik.http.services.spring-frontend.loadbalancer.server.port=8008"
+
+  traefik:
+    image: traefik:v2.8
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - backend
       - web
-    depends_on:
-      - py-backend
 
 networks:
   web:

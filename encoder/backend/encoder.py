@@ -1,3 +1,5 @@
+import urllib.parse
+from functools import cache
 from typing import List, Dict, Iterable
 
 from pydantic import BaseModel
@@ -9,6 +11,9 @@ from decorators import get_instances
 class EncodingBody(BaseModel):
     type: str
     message: str
+
+    def __hash__(self):
+        return f"{self.type}||{self.message}".__hash__()
 
 
 _encoders: List[Encoder] = get_instances(Encoder)
@@ -24,6 +29,7 @@ def get_encoder_from_name(name: str) -> Encoder:
     return _named_encodes[name]
 
 
+@cache
 def encode(body: EncodingBody):
     message = body.message
     if body.type != "string":
